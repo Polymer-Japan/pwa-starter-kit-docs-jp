@@ -1,0 +1,3 @@
+dispatch:
+  - url: "*pwa-starter-kit.polymer-jp.org/*"
+    service: pwa-starter-kit

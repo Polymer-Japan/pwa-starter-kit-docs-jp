@@ -1,0 +1,7 @@
+steps:
+- name: ubuntu
+  args: ['mkdir', '-p', '_site']
+- name: jekyll/jekyll
+  args: ['jekyll', 'build']
+- name: gcr.io/cloud-builders/gcloud
+  args: ['app', 'deploy', '_site/app.yaml', '--project', 'polymer-japan']
