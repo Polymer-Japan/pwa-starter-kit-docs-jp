@@ -1,7 +1,8 @@
 ---
 layout: post
-title: Setup
+title: 設定方法
 ---
+<!-- original:
 This page will take you through the steps you need to do to build and run the sample app locally.
 
 ## Prerequisites
@@ -95,3 +96,110 @@ The complete list of scripts can be found in the [`package.json`](https://github
 Now that you're done with the basics of running your app, check out the next steps:
 - [Configuring and personalizing]({{site.baseurl}}/configuring-and-personalizing) the app by modifying and adding your own content
 - [Building and deploying]({{site.baseurl}}/building-and-deploying) to production
+-->
+
+このページでは、サンプルアプリケーションをローカルにビルドして実行するために必要な手順について説明します。
+
+## 前提条件
+アプリケーションはHTMLを書くための小さなライブラリである[Webコンポーネント](https://www.webcomponents.org/introduction)、JavaScript文字列リテラルを持つテンプレート[lit-html](https://github.com/Polymer/lit-html)、またその上に構築された小さなWebコンポーネント基本クラスである[lit-element](https://github.com/Polymer/lit-element)を使用します。
+
+このアプリはいくつかの[npm](https://www.npmjs.com/)パッケージに依存していてます。次の手順に進む前に、[node.js](https://nodejs.org/en/)と[npm](https://www.npmjs.com/)が既にインストールされていることを確認してください。既に `node`がインストールされている場合は、最新のバージョンを使用していることを確認してください.v8.0.0以上を使用することをお勧めします。
+
+## 新しいアプリを作成する
+
+デフォルトの `pwa-starter-kit`テンプレートを使用する新しいアプリケーションを作成するには:
+```
+git clone --depth 1 https://github.com/Polymer/pwa-starter-kit my-app
+cd my-app
+```
+
+これは、 現在のディレクトリに`my-app`初期プロジェクトを生成します。これはおおよそ次のようになります:
+
+```
+my-app
+├── images
+|   └── ...
+├── src
+|   └── ...
+├── test
+|   └── ...
+├── index.html
+├── README.md
+├── package.json
+├── polymer.json
+├── manifest.json
+├── service-worker.js
+├── sw-precache-config.js
+├── ... (misc project config files)
+```
+
+各ファイルの使用方法の詳細については、[ディレクトリ構造]({{site.baseurl}}/configuring-and-personalizing#folder-structure)のページをご覧ください。
+
+## 他のテンプレート
+
+[他のテンプレート]({{site.baseurl}}/overview#other-templates)にリストされている他のテンプレートのいずれかに基づいて新しいアプリケーションを作成するには、 `pwa-starter-kit`リポジトリから該当のブランチをクローンして使用します:
+
+```
+git clone --depth 1 -b <template-name> --single-branch https://github.com/Polymer/pwa-starter-kit my-app
+```
+
+たとえば、Typescriptテンプレートから開始するには (`template-typescript`):
+
+```
+git clone --depth 1 -b template-typescript --single-branch https://github.com/Polymer/pwa-starter-kit my-app
+```
+
+### 依存関係のインストール
+
+プロジェクトの依存関係をインストールするには、
+
+```
+npm install
+```
+
+これでもう今すぐアプリを実行して、見る準備が整いました!
+
+### 開発モードでアプリケーションを実行する
+
+アプリをローカルで実行するには、
+
+```
+npm start
+```
+
+これはポート8081でローカルサーバを起動します。[http://localhost:8081](http://localhost:8081)を開き、ブラウザでアプリケーションを表示します。このサーバーは、アプリケーションを変更している間も実行を続けることができ、ブラウザのタブを更新して表示を更新します。
+
+8080ポートが既にコンピュータ上で使用されている場合、またはデフォルトのホスト名を変更する必要がある場合（たとえば、Dockerコンテナを使用しているため）、コマンドライン引数を使用してポートを設定できます:
+
+```
+npm start -- --hostname 0.0.0.0 --port 4444
+```
+
+### テストを実行する
+
+テストの詳細については、[Application testing]({{site.baseurl}}/application-testing)のページを参照してください。テストをすぐに実行するには、
+
+```
+npm run test
+```
+
+## 使用可能なスクリプト
+
+アプリのルートディレクトリで:
+- `npm start` 開発モードでアプリケーションを実行します。
+- `npm run test` アプリケーションのユニットと統合テストを実行します（詳細は[テストの章]({{site.baseurl}}/application-testing)を参照）。ユニットテストまたは統合テストだけを実行するには、 `npm run test:unit`と` npm run test:integration`が利用できます。
+- `npm run build` 本番公開用のアプリケーションをビルドします (詳細は[ビルドとデプロイ]({{site.baseurl}}/building-and-deploying)の章を参照)。
+- `npm run serve:static` もしくは `npm run serve:prpl-server` ビルドされたアプリケーションを実行します (詳細は[ビルドとデプロイ]({{site.baseurl}}/building-and-deploying)を参照。
+
+スクリプトの完全なリストは、[`package.json`](https://github.com/Polymer/pwa-starter-kit/blob/master/package.json#L10)ファイルにあります。
+
+## ブラウザサポート
+
+`pwa-starter-kit`はすべてのブラウザでネイティブにサポートされていない、かなり最近のブラウザAPIを使用します。これを回避するために、アプリはポリフィルを使用し、足りないWebプラットフォームの機能をいくつかのブラウザに追加するだけでなく、新しいJavaScript機能をサポートしていないブラウザに新しいJavaScript機能を追加する必要があります（例えばIE11などのブラウザ用のES6からES5変換や動的モジュールのインポート）。詳細については、[ブラウザサポート]({{site.baseurl}}/browser-support)のページをご覧ください。
+
+## 次のステップ
+
+これで、アプリの基本的な操作が完了したので、次のステップを確認してください:
+
+- [カスタマイズとパーソナライズ]({{site.baseurl}}/configuring-and-personalizing) アプリにWebのコンテンツを追加します
+- [ビルドとデプロイ]({{site.baseurl}}/building-and-deploying) 本番公開用
