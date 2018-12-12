@@ -1,7 +1,8 @@
 ---
 layout: post
-title: "Overview: What's in the box?"
+title: "概要: 何が含まれているか"
 ---
+<!-- original:
 The `pwa-starter-kit` is a set of templates you can use as a starting point for building PWAs. Out of the box, the default template gives you the following features:
 
 - All the PWA goodness (manifest, service worker).
@@ -45,3 +46,48 @@ A lot of the reusable functionality of `pwa-starter-kit` has already been pulled
 - `connect-mixin.js`: Small mixin that you can add to a Custom Element base class to automatically connect to a Redux store.
 
 Each of these helpers is very small, and can be implemented in many different, bespoke ways. However, they each represent a feature that is often needed across many different applications, so unless you already have a solution planned for your app, you could use one of these.
+-->
+
+`pwa-starter-kit`は、PWAを構築するための出発点として使用できる一連のテンプレートです。デフォルトのテンプレートをそのまま使用すると、次の機能が提供されます:
+
+- PWAの全ての良さ（マニフェスト、サービスワーカー）
+- レスポンシブレイアウト
+- アプリケーションテーマ
+- 状態管理にReduxを使用する例
+- オフラインUI
+- シンプルなルーティングソリューション
+- PRPLパターンを使用してインタラクティブ・ファースト・ペイントまでの時間が短縮されます
+- prpl-serverまたは静的ホスティングへの簡単なデプロイ
+- ユニットと統合テストの出発点
+- その他の高度なパターンに関するドキュメント
+ 
+## 他のテンプレート
+
+あなたが何をやっているのかが分かっていて、別のテンプレートを使いたいと思っているならば、いくつかのテンプレートが用意されています:
+
+### `template-typescript` ([code](https://github.com/Polymer/pwa-starter-kit/tree/template-typescript), [demo](https://pwa-starter-kit.appspot.com/))
+
+このテンプレートは `master`テンプレートと同じですが、` TypeScript`を使って実装されています。
+
+### `template-minimal-ui` ([code](https://github.com/Polymer/pwa-starter-kit/tree/template-minimal-ui), [demo](https://template-minimal-ui-dot-pwa-starter-kit.appspot.com/))
+
+このテンプレートは `master`テンプレートのような状態管理のためにReduxを使いますが、レスポンシブUIには` app-layout`要素（ `app-header`や` app-drawer`）を使いません。
+
+### `template-no-redux` ([code](https://github.com/Polymer/pwa-starter-kit/tree/template-no-redux), [demo](https://template-no-redux-dot-pwa-starter-kit.appspot.com/))
+
+このテンプレートは `master`と同じUI要素（` app-layout`要素、テーマなど）を持ちますが、状態管理のためにReduxを使用しません。代わりに、データソースが変更可能で、個々の要素（具体的には、各ビュー）がアプリケーション状態全体はプロパティーダウンイベントアップ単方向データフローアプローチとなります。
+### `template-responsive-drawer-layout` ([code](https://github.com/Polymer/pwa-starter-kit/tree/template-responsive-drawer-layout), [demo](https://template-responsive-drawer-layout-dot-pwa-starter-kit.appspot.com/))
+
+このテンプレートは `master`テンプレートと非常によく似ています。つまり、状態管理のためにReduxとすべてのUI要素を保持しているという意味でです。主な違いは、ワイド画面レイアウトでは、内容とインラインで'app-drawer`が表示されることです。
+
+## `pwa-helpers`
+
+`pwa-starter-kit`の再利用可能な機能の多くは、すでに別のリポジトリにヘルパーメソッドとして提供されています。[`pwa-helpers`](https://github.com/Polymer/pwa-helpers)には:
+
+- `router.js`: ページが変わるたびにコールバックを呼び出す非常に基本的なルータ
+- `network.js`: アプリケーションのネットワーク接続が変更されるたびに呼び出されるコールバックライブラリ
+- `metadata.js`: Twitter CardやOGP用のメタデータを設定するユーティリティ
+- `media-query.js`: viewportのサイズが変化したときに、メディアクエリが一致するたびに呼びだされるコールバックライブラリ
+- `connect-mixin.js`: カスタム要素基本クラスに追加して、Reduxストアに自動的に接続できる小さなミックスイン。
+
+これらのヘルパーはそれぞれ非常に小さく、さまざまな方法で実装できます。しかし、それらはそれぞれ異なるアプリケーションで必要とされる機能を持っています。アプリ用まだ実装を用意していない場合は、これらのいずれかを使用できます。
