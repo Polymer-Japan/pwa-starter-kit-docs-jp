@@ -1,7 +1,8 @@
 ---
 layout: post
-title: Performance testing
+title: パフォーマンステスト
 ---
+<!-- original:
 This page takes you through the tools you can use to measure your application's performance.
 
 ## Loading performance
@@ -40,4 +41,51 @@ In particular, the [film strip view](https://www.webpagetest.org/video/compare.p
 
 
 Interactive timeline of your resources loading, and who generated the requests:
+<img width="926" alt="screen shot 2018-05-02 at 11 01 02 am" src="https://user-images.githubusercontent.com/1369170/39540689-3dfebc04-4df8-11e8-9159-430aaed9ba1a.png">
+-->
+
+このページでは、アプリケーションのパフォーマンスを測定するために使用できるツールについて説明します。
+
+## 読み込みパフォーマンス
+
+`pwa-starter-kit`は、[PRPLパターン](https://developers.google.com/web/fundamentals/performance/prpl-pattern/)を使用して構築されています。これは、PWAの構築と提供のための新しいアプローチです。パフォーマンスに重点を置いています:
+
+- **Push** 初期URLルートの重要なリソースをプッシュ(先に送信)します。これはHTTP2 pushを使用して実現され、[ビルドとデプロイ]({{site.baseurl}}/building-and-deploying#h2-server-push-optional)セクションでカバーされています。
+- **Render** 最初にルートを描画(レンダリング)します。リクエストされたページをできるだけ早くレンダリングするために、各ルートは必要なものだけをロードします。他の、まだリクエストされていないアプリケーションの必要なリソースはロードしないようにします。
+- **Pre-cache** 残りのルートを事前にキャッシュします。 要求されたページがロードされると、Service Workerがインストールされ、[polymer.json](https://github.com/Polymer/pwa-starter-kit/blob/master/polymer.json#L4)に指定されたフラグメントがプリキャッシュされます。
+- **Lazy-load** 残ったルートをオンデマンドで遅延読み込み(Lazy-load)します。ユーザーがルートを切り替えると、Service Workerによってキャッシュされていない必要なリソースがすべて遅延読み込みされ、ビューが作成されます。
+
+## 遅延読み込み
+
+遅延読み込み(Lazy loading)は `pwa-starter-kit`の重要なポイントです。各ルートが画面に何かをレンダリングするために必要なものだけをロードし、後で追加作業が行われるからです。これが行われるアプリにはいくつかの場所があります:
+
+### ルートの遅延読み込み
+
+各ルートの実際のJavaScriptコードは、そのルートが要求されている場合にのみロードされます。これは[`loadPage`](https://github.com/Polymer/pwa-starter-kit/blob/master/src/actions/app.js#L29) action creatorで行われます。これはいつでもナビゲーションのたびに呼び出されます。
+
+### reducersの遅延読み込み
+
+ルートがReduxストアに接続されている場合、遅延ロードされているので、そのレデューサーも同様にする必要があります。 [Reduxと状態管理]({{site.baseurl}}/redux-and-state-management#lazy-loading)ページでは、reducersの遅延読み込みに対応するようにストアを設定する方法が説明され、`pwa-starter-kit`でどのように行うのかの[サンプル](https://github.com/Polymer/pwa-starter-kit/blob/master/src/components/my-view2.js#L23)が提供されています。
+
+## パフォーマンス測定
+
+パフォーマンスの測定と自動化に役立ついくつかの[ツール](https://developers.google.com/web/fundamentals/performance/rail#tools)があります。
+
+### Lighthouse
+[Lighthouse](https://developers.google.com/web/tools/lighthouse/)は、Webページを測定し改善するためのオープンソースツールです。これはChrome DevTools拡張モジュールまたはノードモジュールとして提供されるため、コマンドラインで実行できます（他の自動ノードテストと統合することもできます）。一度それが走ったら、それは全体的なスコアを提供し、改善の為に提案をしてくれます:
+
+<img width="1552" alt="screenshot of lighthouse results" src="https://user-images.githubusercontent.com/1369170/43412131-1626a17c-93e1-11e8-9814-bc40c947cb8b.png">
+
+### WebPageTest
+
+[WebPageTest](https://www.webpagetest.org/easy)は、遅い3G接続の実際のMoto G4デバイスでページをロードし、そのシナリオでのページの負荷パフォーマンスに関する詳細レポートを提供するアプリケーションです。実世界のテスト環境でのアプリケーションの動作を確認することは非常に便利です。
+
+例えば[ここ](https://www.webpagetest.org/result/180502_2J_6637ba5cf9264c1e8d048a9bc17b204b/)に`pwa-starter-kit`のテスト結果があります。
+
+
+特に、[フィルムストリップビュー](https://www.webpagetest.org/video/compare.php?tests=180502_2J_6637ba5cf9264c1e8d048a9bc17b204b-r%3A1-c%3A0&thumbSize=200&ival=100&end=visual)は非常に便利です。アプリケーションが実際にスクリーンに最初にペイントする時のタイムラインを示します:
+
+<img width="897" alt="screen shot 2018-05-02 at 11 00 46 am" src="https://user-images.githubusercontent.com/1369170/39540684-3c8ff676-4df8-11e8-8239-23f89c76ffec.png">
+
+リソースの読み込みのインタラクティブなタイムライン、およびそのリクエストの生成元:
 <img width="926" alt="screen shot 2018-05-02 at 11 01 02 am" src="https://user-images.githubusercontent.com/1369170/39540689-3dfebc04-4df8-11e8-9159-430aaed9ba1a.png">
