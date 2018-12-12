@@ -1,7 +1,8 @@
 ---
 layout: post
-title: Building and deploying
+title: ビルドとデプロイ
 ---
+<!-- original:
 This page will take you through the steps you need to do to build and deploy your application to production.
 
 ## Table of Contents
@@ -243,3 +244,297 @@ build/
 ```
 
 By default, all of the source files (inside the `/src` directory) will be pre-cached, as specified in the [`sw-precache-config.js`](https://github.com/Polymer/pwa-starter-kit/blob/master/sw-precache-config.js) configuration file. If you want to change this behaviour, check out the [`sw-precache-config` docs](https://www.polymer-project.org/3.0/toolbox/service-worker).
+-->
+
+このページでは、アプリケーションを作成して本番環境に展開するために必要な手順について説明します。
+
+## 目次
+- [prpl-server (推奨)](#prpl-server-recommended)
+  - [prpl-server用のビルド](#building-for-prpl-server)
+  - [prpl-serverのプレビュー](#previewing-prpl-server)
+  - [prpl-serverのデプロイ](#deploying-prpl-server)
+    - [App Engine](#app-engine)
+    - [Firebase Hosting + Firebase Functions](#firebase-hosting--firebase-functions)
+- [静的ホスティング](#static-hosting)
+  - [静的ホスティングのためのビルド](#building-for-static-hosting)
+  - [静的ホスティングのプレビュー](#previewing-static-hosting)
+  - [静的ホスティングのデプロイ](#deploying-static-hosting)
+    - [App Engine](#app-engine-1)
+    - [Firebase Hosting](#firebase-hosting)
+    - [Netlify](#netlify)
+- [Service Worker](#service-worker)
+
+<a id="prpl-server-recommended">
+
+## `prpl-server` (推奨)
+
+[prpl-server](https://github.com/Polymer/prpl-server-node)は、各ブラウザに対して最適に配信するために振り分け機能を提供するノードサーバーです。
+[`polymer.json`](https://github.com/Polymer/pwa-starter-kit/blob/master/polymer.json)の設定では、以下の応答をサポートします:
+
+- `esm-bundled` - ESモジュールをサポートするブラウザ用のバンドルされたESモジュール
+- `es6-bundled` - ES6/2015をサポートする他のブラウザ用に[AMD](http://requirejs.org/docs/whyamd.html)を使用してバンドルされたES6/2015コード
+- `es5-bundled` - 他のブラウザ用に[AMD](http://requirejs.org/docs/whyamd.html)を使用してバンドルされたES5コード
+- サーバサイドレンダリングをWebのbotやクローラ向けに([Rendertron](https://github.com/GoogleChrome/rendertron)によって)
+
+
+<a id="building-for-prpl-server">
+
+### `prpl-server`のためのビルド
+
+ビルドを実行するには:
+
+```
+npm run build:prpl-server
+```
+
+これで `server/build/`ディレクトリが生成されます:
+
+```
+server/
+├── build/
+|   └── es5-bundled/
+|   └── es6-bundled/
+|   └── esm-bundled/
+|   └── polymer.json
+├── app.yaml
+├── package-lock.json
+└── package.json
+```
+
+<a id="previewing-prpl-server">
+
+### `prpl-server`のプレビュー
+
+prpl-serverをローカルで使用してビルドをプレビューするには:
+
+```
+npm run serve:prpl-server
+```
+
+<a id="deploying-prpl-server">
+
+### `prpl-server`のデプロイ
+
+構築後、 `server/`の中には、本番環境でアプリケーションを実行するために必要なすべてのファイルと設定が含まれています。
+提供されている `server/package.json`は、サーバーの依存関係と、Node.jsをサポートするほぼすべてのホスティングサービスで使用できるstartコマンドを指定されています。
+
+<a id="app-engine">
+
+#### App Engine
+
+##### フレキシブル環境
+
+The contents of `server/app.yaml` is pre-configured to be deployed to [Google App Engine Node.js Flexible Environment](https://cloud.google.com/appengine/docs/flexible/nodejs/). Use the `gcloud` tool to deploy the contents of `server/` (e.g. `gcloud app deploy server/app.yaml`).
+
+`server/app.yaml`のコンテンツは[Google App Engine Node.jsフレキシブル環境](https://cloud.google.com/appengine/docs/flexible/nodejs/)にデプロイできるように事前設定されています。 `gcloud`ツールを使用して` server/`の内容をデプロイします（例: `gcloud app deploy server/app.yaml`）。
+
+##### スタンダード環境 (ベータ)
+
+[Google App Engine Node.js スタンダード環境（Beta）](https://cloud.google.com/appengine/docs/standard/nodejs/)にデプロイするには、 `server/app.yaml`の下記で置き換えます:
+
+```yaml
+runtime: nodejs8
+```
+
+`gcloud`ツールを使用して`server/`の内容をデプロイします (例: `gcloud app deploy server/app.yaml`).
+
+<a id="firebase-hosting--firebase-functions">
+
+#### Firebase Hosting + Firebase Functions
+
+_Firebase Hosting_だけでは、ユーザエージェント文字列のサーバサイド処理が必要なため、 `prpl-server`ビルドのホスティングには不十分です。代わりに、サーバ側の処理に `Firebase Functions`を使わなければなりません。 [このgist](https://gist.github.com/Dabolus/314bd939959ebe68f57f1dcebe120a7e)には、これを実施するための詳細な手順が記載されています。
+
+<a id="static-hosting">
+
+## 静的ホスティング
+
+ブラウザ環境別に分けた配信が不要で、すべてのブラウザに同じビルドを提供したい場合は、静的なサーバーに展開するだけで済みます。
+
+<a id="building-for-static-hosting">
+
+### 静的ホスティングのためのビルド
+
+本番サイトを構築するには、:
+
+```
+npm run build:static
+```
+
+これにより、3つの異なるビルド出力が作成されます:
+
+```
+build/
+├── es5-bundled/
+├── es6-bundled/
+├── esm-bundled/
+└── ...
+```
+
+- `esm-bundled` - ESモジュールをサポートするブラウザ用のバンドルされたESモジュール
+- `es6-bundled` - ES6/2015をサポートする他のブラウザ用に[AMD](http://requirejs.org/docs/whyamd.html)を使用してバンドルされたES6/2015コード
+- `es5-bundled` - 他のブラウザ用に[AMD](http://requirejs.org/docs/whyamd.html)を使用してバンドルされたES5コード
+
+<a id="previewing-static-hosting">
+### 静的ホスティングのプレビュー
+
+ローカルでプレビューするには:
+
+```
+npm run serve:static
+```
+
+デフォルトの設定は `es5-bundled`ビルドを使います。レガシーブラウザをサポートする必要がない場合は、package.jsonの `serve:static`スクリプトを` es6-bundled`または `esm-bundled`を使うように修正することで、より現代的なビルドを使用することができます。すべてのページナビゲーションリクエストが `index.html`の内容を提供していることを確認してください。
+
+<a id="deploying-static-hosting">
+
+### 静的ホスティングのデプロイ
+
+By default, static hosting servers aren't set up to work with single page apps (SPAs) -- in particular, the problem is that an SPA uses routes that do not correspond to full file path names. For example, in `pwa-starter-kit` the second view's URL is `http://localhost:8081/view2`, but that doesn't correspond to a file that the browser can use. Each static hosting server has a different approach to working around this
+
+
+デフォルトでは、スタティックホスティングサーバーはシングルページアプリケーション(SPA)で動作するように設定されていません。特に、SPAが完全なファイルパス名に対応しないルートを使用するという問題があります。たとえば、 `pwa-starter-kit`の2番目のビューのURLは`http://localhost:8081/view2`ですが、ブラウザが使用できるファイルには対応していません。各静的ホスティングサーバーには、これを回避するための異なるアプローチを持っています:
+
+<a id="app-engine-1">
+#### App Engine
+
+[Google App Engine SDK](https://cloud.google.com/appengine/downloads)をダウンロードし、ご使用のプラットフォームの手順に従ってインストールしてください。ここでは、Python SDKを使用しています。
+
+[App Engineにログイン](https://cloud.google.com/appengine)し、[プロジェクトダッシュボード](https://pantheon.corp.google.com/cloud-resource-manager)から新規プロジェクトを作ります。 プロジェクトに関連付けられているプロジェクトIDをメモしておきます。
+
+App Engine設定ファイル（`app.yaml`）を次のように作成します:
+
+```yaml
+runtime: python27
+api_version: 1
+threadsafe: yes
+
+handlers:
+
+- url: /images
+  static_dir: build/es5-bundled/images
+  secure: always
+
+- url: /node_modules
+  static_dir: build/es5-bundled/node_modules
+  secure: always
+
+- url: /src
+  static_dir: build/es5-bundled/src
+  secure: always
+
+- url: /manifest.json
+  static_files: build/es5-bundled/manifest.json
+  upload: build/es5-bundled/manifest.json
+  secure: always
+
+- url: /service-worker.js
+  static_files: build/es5-bundled/service-worker.js
+  upload: build/es5-bundled/service-worker.js
+  secure: always
+
+- url: /.*
+  static_files: build/es5-bundled/index.html
+  upload: build/es5-bundled/index.html
+  secure: always
+
+skip_files:
+- build/es6-bundled/
+- build/esm-bundled/
+- images/
+- node_modules/
+- server/
+- src/
+- test/
+```
+
+プロジェクトをデプロイするには:
+```
+gcloud app deploy --project <project_ID>
+```
+
+<a id="firebase-hosting">
+
+#### Firebase Hosting
+
+[Firebase](https://firebase.google.com/docs/hosting/)は、世界中に配信できる簡単なHTTP2対応静的ホスティング、リアルタイムデータベース、サーバー機能、エッジキャッシングを提供しています。
+
+Firebase CLIをインストール:
+```
+npm install -g firebase-tools
+```
+
+[Firebaseにログイン](https://www.firebase.com/signup/)します。[Firebaseコンソール](https://www.firebase.com/)で新規プロジェクトを作成し、プロジェクトに関連付けられているプロジェクトIDをメモしておきます。
+
+Firebaseにログインし、作成したプロジェクトを作業ディレクトリ用のアクティブなFirebaseプロジェクトとして設定します:
+```
+firebase login
+firebase use <project_ID>
+```
+
+Firebase設定ファイル（ `firebase.json`）を以下のように作成します:
+
+```json
+{
+  "hosting": {
+    "public": "build/es5-bundled/",
+    "rewrites": [
+      {
+        "source": "**/!(*.*)",
+        "destination": "/index.html"
+      }
+    ],
+     "headers": [
+      {
+        "source":"/service-worker.js",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+プロジェクトをデプロイするには:
+```
+firebase deploy
+```
+
+<a id="netlify">
+
+#### Netlify
+[Netlify](https://www.netlify.com/)は[継続的デプロイ](https://www.netlify.com/docs/continuous-deployment/)がビルトインされ、ビルドコマンドを自動的に実行し、Gitリポジトリにプッシュするたびに結果をデプロイします。
+
+次の[書き換えルール](https://www.netlify.com/docs/redirects/)を使って `_redirects`ファイルを作成します:
+
+```
+/*    /index.html   200
+```
+
+[netlify](https://app.netlify.com/signup)に移動し、新しいプロジェクトのGitホスティング先を設定します。`Basic build settings`では、ビルドコマンドとして` npm run build:static`を、パブリッシュディレクトリとして `build/es5-bundled`を置きます。
+
+`Deploy site`をクリックします。
+
+
+<a id="service-worker">
+## Service Worker
+
+Service Workerが[`index.html`](https://github.com/Polymer/pwa-starter-kit/blob/master/index.html#L68)でロードされ、登録されます。しかし、開発中（デバッグを簡単にするため）は Service Workerは実際には存在せず、[空ファイル](https://github.com/Polymer/pwa-starter-kit/blob/master/service-worker.js)のみが存在します。
+
+Service Workerの設定はビルド時、つまり `npm run build:static`または`npm run build:prpl-server`を実行することによって自動的に作成されます。ビルドディレクトリのこれらのファイルは、[`polymer.json`](https://github.com/Polymer/pwa-starter-kit/blob/master/polymer.json)の設定ファイルに基づいて生成されます:
+
+```
+build/
+├── es5-bundled/
+|   └── service-worker.js
+├── es6-bundled/
+|   └── service-worker.js
+├── esm-bundled/
+|   └── service-worker.js
+└── ...
+```
+
+デフォルトでは、 `/src`ディレクトリ内のすべてのソースファイルは、[`sw-precache-config.js`](https://github.com/Polymer/pwa-starter-kit/blob/master/sw-precache-config.js)で指定された通りにプリキャッシュされます。この動作を変更したい場合は、[`sw-precache-config`ドキュメント](https://www.polymer-project.org/3.0/toolbox/service-worker)を参照してください。
