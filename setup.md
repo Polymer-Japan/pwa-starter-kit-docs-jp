@@ -103,7 +103,7 @@ Now that you're done with the basics of running your app, check out the next ste
 ## 前提条件
 アプリケーションはHTMLを書くための小さなライブラリである[Webコンポーネント](https://www.webcomponents.org/introduction)、JavaScript文字列リテラルを持つテンプレート[lit-html](https://github.com/Polymer/lit-html)、またその上に構築された小さなWebコンポーネント基本クラスである[lit-element](https://github.com/Polymer/lit-element)を使用します。
 
-このアプリはいくつかの[npm](https://www.npmjs.com/)パッケージに依存していてます。次の手順に進む前に、[node.js](https://nodejs.org/en/)と[npm](https://www.npmjs.com/)が既にインストールされていることを確認してください。既に `node`がインストールされている場合は、最新のバージョンを使用していることを確認してください.v8.0.0以上を使用することをお勧めします。
+このアプリはいくつかの[npm](https://www.npmjs.com/)パッケージに依存していてます。次の手順に進む前に、[node.js](https://nodejs.org/en/)と[npm](https://www.npmjs.com/)が既にインストールされていることを確認してください。既に `node`がインストールされている場合は、最新のバージョンを使用していることを確認してください。v8.0.0以上を使用することをお勧めします。
 
 ## 新しいアプリを作成する
 
