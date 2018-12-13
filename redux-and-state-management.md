@@ -1,7 +1,8 @@
 ---
 layout: post
-title: Redux and state management
+title: Reduxと状態管理
 ---
+<!-- original:
 This page will take you through the steps you need to do to use Redux to manage your application's state.
 
 ## Table of contents
@@ -469,3 +470,562 @@ store.subscribe(() => {
 ```
 
 That's it! If you want to see a demo of this in a project, the [**Flash-Cards**](https://github.com/notwaldorf/flash-cards/blob/master/src/localStorage.js) app implements this pattern.
+-->
+
+このページでは、Reduxを使用してアプリケーションの状態を管理するために必要な手順について説明します。
+
+## 目次
+
+- [一般な原則](#general-principles)
+  - [いくつかの定義](#some-definitions)
+  - [命名規則](#naming-conventions)
+- [ストアに要素を接続する](#connecting-elements-to-the-store)
+  - [接続するもの](#what-to-connect)
+  - [接続方法](#how-to-connect)
+    - [ストアの作成](#creating-a-store)
+    - [ストアへの要素の接続](#connecting-an-element-to-the-store)
+    - [ディスパッチアクション](#dispatching-actions)
+- [ケーススタディをみる](#case-study-walkthrough)
+  - [例1: カウンター](#example-1-counter)
+  - [例2: ショッピングカート](#example-2-shopping-cart)
+  - [ルーティング](#routing)
+- [パターン](#patterns)
+  - [アクションクリエイターにDOMイベントを接続する](#connecting-dom-events-to-action-creators)
+    - [手動](#manually)
+    - [自動](#automatically)
+  - [Reducers: スライスする](#reducers-slice-reducers)
+  - [重複状態を避ける](#avoid-duplicate-state)
+  - [サードパーティのコンポーネントが状態を変更しないようにする方法](#how-to-make-sure-third-party-components-dont-mutate-the-state)
+  - [ルーティング](#routing-1)
+  - [遅延読み込み](#lazy-loading)
+  - [ストレージの状態を複製する](#replicating-the-state-for-storage)
+
+<a id="general-principles">
+
+## 一般な原則
+
+[Redux](https://redux.js.org/)は小さな状態管理コンテナで、ビューとは関係なく広く使われています。これは、アプリケーションロジック（アプリケーション状態）をビューレイヤーから分離し、そのストアをアプリケーション状態の真の単一のソースとして持つという考えを中心にしています。私たちは[Redux docs](https://redux.js.org/)の一部と、Lin Clark氏によるこの素晴らしい[Reduxの紹介漫画](https://code-cartoons.com/a-cartoon-intro-to-redux-3afb775501a6)を読むことをお勧めします。
+
+Reduxのすばらしい機能の1つは、[タイムトラベルデバック](https://code-cartoons.com/hot-reloading-and-time-travel-debugging-what-are-they-3c8ed2812f35)を実行できることです。特に、この[Chrome拡張機能](https://chrome.google.com/webstore/detail/redux-devtools/lmhkpmbekcpmknklioeibfkpmmfibljd?hl=ja)を使います。
+
+<a id="some-definitions">
+
+### いくつかの定義
+
+Reduxを使って作業するとき、たくさんの言葉が多用されます。最初は混乱するかもしれません:
+- **state**: これはアプリに含まれている状態です。一般に、使用する要素のプロパティはすべて状態と見なすことができます。
+- **store**: 状態を保持するもの。storeは1つしかできず、すべての正しい状態の源です。 `store.getState()`を介してストアから状態を取得できます。
+- **actions**: 状態に"何が起ったか"を伝え、アプリがどのようにstoreと交信するのかを定義するもの(よって何かを更新する必要があることを伝えます。 `MEOW`アクションは `store.dispatch(MEOW)` を使ってストアに送られます。
+- **action creators**: アクションを作成する関数。彼らはアクションを返し、それをディスパッチすることができます。 あなたは `store.dispatch(doAMeow())' を介してあなたのアプリでアクションクリエータを使用します。 アクションクリエイターは、非同期アクションをディスパッチすることもでき、非常に便利です！
+- **reducers**: アクションの結果として状態がどのように更新されるかを記述します。 それらは、既存の状態とアクション、および（いくつかの作業を行った後）、適切な更新を適用して状態の新しいコピーを返します。
+
+<a id="naming-conventions">
+
+### 命名規則
+
+アプリケーションコードを次のように配置することをお勧めします:
+
+```
+src
+├── store.js
+├── actions
+│   └── counter.js
+|   └── ...
+├── reducers
+│   └── counter.js
+|   └── ...
+└── components
+    └── simple-counter.js
+    └── my-app.js
+    └── ...
+```
+
+- アクションクリエイターとレデューサーは同じ名前を持つことができます（必須ではありません）。たとえば、ショッピングアプリでは次のようなreducerを使用できます:
+  - `app.js` オンライン/オフラインステータス、ルートパスなど、大きな画像アプリ関連のデータを処理する
+  - `products.js` 購入できる製品のリスト用
+  - `cart.js` ショッピングカート用
+  - その他...
+- アクションタイプ
+  - 動詞（+名詞、オプション）、使用されているのは: `ADD_TODO`, `FETCH`, `FETCH_ITEMS`, `RECEIVE_ITEMS`.
+  - これらは、起こっていることを表し、すでに起こっていることを表すものではありません。
+- アクションクリエイター
+  - アクションタイプと同じですが、 キャメルケースで表します (`addTodo` -> `ADD_TODO`).
+- セレクタ
+  - `categorySelector`/`itemsSelector` vs `getCategory`/`getItems` (それらがセレクタであることを区別するために、 `get*`メソッドを非メモ化セレクタとして表します).
+
+<a id="connecting-elements-to-the-store">
+
+## ストアに要素を接続する
+
+<a id="what-to-connect">
+
+### 接続するとは
+
+一般に、ストアデータに直接アクセスする必要があるものは、**connected**要素とみなす必要があります。 これには、状態を更新する（ `store.dispatch`を呼び出す）か状態監視する（`store.subscribe`を呼び出す）の両方が含まれます。
+
+ただし、要素がストアデータを監視する必要がある場合、接続された親要素からのデータバインディングを介してこのデータを受け取ることができます。 ショッピングカートの例について考えると、カートの内容はアプリケーションの状態の一部なので、カート自体をストアに接続する必要がありますが、接続する必要のあるカート内の各アイテムをレンダリングする再利用可能な要素は必要ありません（データバインディングを介してデータを受け取るだけなので）
+
+これは非常にアプリケーション固有の決定なので、それを見始める1つの方法は、遅延ロードされた要素を接続してそこから1つ上または下に移動することです。それは下記のように見えるかもしれません:
+<img width="785" alt="screen shot 2018-01-25 at 12 22 39 pm" src="https://user-images.githubusercontent.com/1369170/35410478-7373c98a-01ca-11e8-9f7f-4b95c8a4f47c.png">
+
+この例では、 `my-app`と` my-view1`だけが接続されています。 `a-element`はアプリケーションレベルのコンポーネントではなく、再利用可能なコンポーネントであるため、アプリケーションのデータを更新する必要がある場合でも、 [これ](https://github.com/Polymer/pwa-starter-kit/blob/master/src/components/counter-element.js#L56)のようなDOMイベントを介してこれを伝えます。
+
+<a id="how-to-connect">
+
+## 接続方法
+
+実際のコードに従う場合、基本的なRedux [カウンターサンプル](https://github.com/Polymer/pwa-starter-kit/blob/master/src/components/my-view2.js)が`pwa-starter-kit`に含まれています。
+
+<a id="creating-a-store">
+
+### ストアの作成
+
+シンプルなストアを作成したい場合、それは遅延読み込みするreducerではないので、おそらくこのようなものが必要です:
+
+```js
+export const store = createStore(
+  reducer,
+  compose(applyMiddleware(thunk))
+);
+```
+
+[redux-thunk](https://github.com/gaearon/redux-thunk)ミドルウェアが追加されているため、これはまだ最も基本的なストアではないことに注意してください。これにより、非同期アクションをディスパッチできます。これは中程度の複雑さのアプリケーションでは必須です。
+しかし、ほとんどの場合、怠惰な遅延読み込みのルートになるでしょうし、reducerも遅延してロードする必要があります。そのため、初期化後にreducerを置き換えることができるストアが必要なので、 `pwa-starter-kit`では`lazyReducerEnhancer`と` redux-thunk`を使います:
+
+```js
+export const store = createStore(
+  (state, action) => state,
+  compose(lazyReducerEnhancer(combineReducers), applyMiddleware(thunk))
+);
+```
+
+`lazyReducerEnhancer`については[遅延読み込み](#lazy-loading)により詳細な説明があります。
+
+<a id="connecting-an-element-to-the-store">
+
+### ストアへの要素の接続
+
+接続されている要素は、コンストラクタ内で `store.subscribe`を呼び出す必要があり、`update`メソッドでプロパティを更新するだけです（もし必要な場合）。`pwa-helpers`にはmixin([`connect-mixin.js`](https://github.com/Polymer/pwa-helpers/blob/master/connect-mixin.js))が用意されており、そこですべての接続がされ、`stateChanged`メソッドを実装することにより利用できます。サンプルとしては:
+
+```js
+import { LitElement, html } from '@polymer/lit-element/lit-element.js'
+import { connect } from  '@polymer/pwa-helpers/connect-mixin.js';
+import { store } from './store/store.js';
+
+class MyElement extends connect(store)(LitElement) {
+  static get is() { return 'my-element'; }
+
+  static get properties() { return {
+    clicks: { type: Number },
+    value: { type: Number }
+  }}
+
+  render() {
+    return html`...`;
+  }
+
+  // もしこのメソッドが実装されていないと
+  // コンソールに警告が表示されます。
+  stateChanged(state) {
+    this.clicks = state.counter.clicks;
+    this.value = state.counter.value;
+  }
+}
+```
+
+If you're doing any expensive work in `stateChanged`, such as transforming the data from the Redux store (with something like `Object.values(state.data.someArray)`), consider moving that logic into the `render()` function (which is called only if the properties update), using a selector, or adding some form of dirty checking
+
+`stateChanged`はストア更新時にエレメントの表示更新とは関係なく**毎回**呼び出されるので注意してください。 したがって、上記の例では、 `stateChanged`は`state.counter.clicks`と `state.counter.value`が変わることなく複数回呼び出されています。Reduceストアから(`Object.values(state.data.someArray)`のようなもので)データを変換するなど、 `stateChanged`で高価な作業をしている場合は、そのロジックを`render()`関数（プロパティが更新された場合のみ呼び出されます）に移動し、セレクタか何らかのダーティチェック(元データとの変更確認)を追加してください:
+
+```js
+stateChanged(state) {
+  if (this.clicks !== state.counter.clicks) {
+    this.clicks = state.counter.clicks;
+  }
+}
+```
+
+<a id="dispatching-actions">
+
+### ディスパッチアクション
+
+要素がストアを更新するアクションをディスパッチする必要がある場合、アクションクリエータを呼び出す必要があります:
+
+```js
+import { increment } from './store/actions/counter.js';
+
+firstUpdated() {
+  // カウンタの表示が更新されるたびに、
+  // これらの値をストアに保存します
+  this.addEventListener('counter-incremented', function() {
+    store.dispatch(increment());
+  });
+}
+```
+
+アクションクリエータは、システムが何をしているのか、それが何をしているのかを伝えます。このアクションクリエータは、同期アクションを返すことができます:
+
+```js
+export const increment = () => {
+  return {
+    type: INCREMENT
+  };
+};
+```
+
+非同期の場合は
+
+```js
+export const increment = () => (dispatch, getState) => {
+  // ここで何か処理
+  const state = getState();
+  const howMuch  = state.counter.doubleIncrement ? 2 : 1;
+  dispatch({
+      type: INCREMENT,
+      howMuch,
+    });
+  }
+};
+```
+
+もしくは他のアクションクリエータに結果をディスパッチ:
+
+```js
+export const increment = () => (dispatch, getState) => {
+  // ここで何か処理
+  const state = getState();
+  const howMuch = state.counter.doubleIncrement? 2 : 1;
+  dispatch(incrementBy(howMuch));
+};
+```
+
+<a id="case-study-walkthrough">
+
+## ケーススタディをみる
+
+このチュートリアルの目的は、標準的なReduxサンプルの2つを `pwa-starter-kit`テンプレートアプリケーションにどのように追加したのかを説明することによって、Reduxを始める方法を示します。
+
+<a id="example-1-counter">
+
+### 例1: カウンター
+
+[counter](https://redux.js.org/docs/introduction/Examples.html#counter-vanilla)の例は非常に簡単です: counterカスタム要素（これは再利用可能であるものとして）を `my-view2.js`にコピーします。 この例は非常に詳細で、変更する必要があるコードのすべての行を示しています。上位レベルの例が必要な場合は、例2を参照してください。要素、アクションクリエータ、アクション、reducer、ストア間の相互作用は、次のようになります:
+<img width="886" alt="screen shot 2018-01-25 at 12 44 24 pm" src="https://user-images.githubusercontent.com/1369170/35411408-7edd9d84-01cd-11e8-9044-d817dc1967da.png">
+
+#### `counter.element.js`
+
+これはReduxストアに接続していない[普通のエレメント](https://github.com/Polymer/pwa-starter-kit/blob/master/src/components/counter-element.js)です。Reduxストアに接続されていないので、`clicks`と`value`の2つのプロパティとカウントアップとカウントダウンをする2つのボタンをもっています(`clicks`は増え続けます)。
+
+#### `my-view2.js`
+
+このエレメントは[アプリケーションとしてのエレメント](https://github.com/Polymer/pwa-starter-kit/blob/master/src/components/my-view2.js) (再利用可能な要素とは対照的に)で、ストアに接続しています。これは、アプリケーションの状態を読み取り、更新できることを意味します。特に、`counter-element`からのvalueとclicksプロパティです。 必要な機能のは:
+
+- このビューに `counter-element`を追加してください。 状態は要素ではなくReduxストアに存在するため、状態を要素に**落して**渡すことに注意してください。 これは、ボタンのいずれかをクリックするたびに `counter-element`が内部プロパティを更新するにもかかわらず、アプリとしては正しい状態が必ずしも必要ないことになります。 例えばもっと複雑な例としては別のビューもこのカウンタの値を更新する場合です。 ストアはデータの唯一の正しい情報元であり、 `counter-element`は常にそれを反映しなければなりません。
+
+```html
+<counter-element value="${props._value}" clicks="${props._clicks}"></counter-element>
+```
+- Reduxストアに応じて状態が変化し、`counter-element`の閉じられて隠されたものではないことを示す為に`clicks`プロパティを追加しましたcircleクラスに:
+
+```html
+<div class="circle">${props._clicks}</div>
+```
+- ビューをストアに接続すには:
+
+```js
+import { connect } from '@polymer/pwa-helpers/connect-mixin.js';
+class MyView2 extends connect(store)(LitElement) {
+...
+}
+```
+- reducerを遅延読み込みします。これを必ず行う必要はありません（特にプロトタイピングの場合）。しかし、このビューは遅延ロードされているので、(PRPLのアプローチでは)reducerも同様にしなければなりません。
+
+```js
+import counter from '../reducers/counter.js';
+store.addReducers({
+  counter
+});
+```
+- ストア内で何かが更新されたときに呼び出される `stateChanged`メソッドを実装します。ストアは2つのプロパティ（counter要素自体ではなく）の真のソースなので、Reduxストアの更新時にはローカルプロパティを更新する必要があります。これは `counter-element`を最新の状態に保ちます:
+
+```js
+stateChanged(state) {
+  this._clicks = state.counter.clicks;
+  this._value = state.counter.value;
+}
+```
+
+- ここで `_clicks`と`_value`の両方がアンダースコアで始まることに注意してください。つまり、それらは保護されています - 私たちは `<my-view2>`要素の外側でそれらを変更してほしくないと考えます。
+- 次に、`counter-element`がその値を更新すると（ボタンがクリックされたため）、その変更イベントを聞き、アクションクリエータをストアにディスパッチします:
+
+```js
+this.addEventListener('counter-incremented', function() {
+  store.dispatch(increment());
+})
+```
+- `increment`はアクションクリエータです。それは `src/actions/counter.js`で定義され、` INCREMENT`アクションを送ります（`decrement`も同じ）。ストアがこのアクションを受け取ると、状態を更新する必要があります。これは `src/reducers/counter.js`でreducerが交信します。
+
+<a id="example-2-shopping-cart">
+
+### 例1: ショッピングカート
+
+[ショッピングカートの例](https://redux.js.org/docs/introduction/Examples.html#shopping-cart)はもう少し複雑です。メインビュー要素（`my-view3.js`）には、選択可能な製品のリストである`<shop-products> `と、ショッピングカートである`<shop-cart>`があります。リストから商品を選択してカートに追加することができます。各商品には在庫が限られており、在庫がなくなります。カート内でチェックアウトを実行することができます。これは、失敗する可能性があります（実際の生活では、クレジットカードの確認、サーバーエラーなどにより失敗する可能性があります）。これは次のようになります。
+<img width="819" alt="screen shot 2018-01-25 at 12 50 22 pm" src="https://user-images.githubusercontent.com/1369170/35411643-53dccc62-01ce-11e8-8799-6a48da8901a5.png">
+
+#### `my-view3.js`
+
+これは、商品のリスト、カート、および[チェックアウト]ボタンの両方を表示する接続された要素です。カートにアイテムがあるかどうか（チェックアウトボタンを表示するかどうかなど）に基づいて条件付きUIを表示する必要があるため、接続されているだけです。Checkoutボタンがカートに属していた場合、これは接続されていない要素となります。たとえば:
+
+- Checkoutボタンを押すと、 `checkout`アクションクリエータが呼び出されます。このアクションクリエータでは、カート/サーバーの妥当性チェックを行うので、操作が完了できない場合は、ここで `CHECKOUT_FAILURE`を実行します。私たちはコインを反転し、非同期アクションを条件付きでディスパッチすることでそれをシミュレートします。
+- チェックアウトが成功した場合、 `products`オブジェクトは更新され（新しい在庫で）、`cart`はその初期値（空）にリセットされます。
+- 注目すべきことは、 `src/reducers/shop.js`のreducerでは、多くのスライスreducerを使用しています。スライスreducerは、店舗全体（たとえば、1つの商品アイテム）のスライス（実際には）とそれを更新する役割を担います。店舗内の特定の商品IDの在庫を更新するには、商品全体を減らすために `products` スライド reducerを呼び出し、次にアクションで渡された商品IDの`product` スライス reducerを呼び出します。
+
+#### `shop-products.js`
+
+この要素は、 `getAllProducts`アクションクリエータをディスパッチすることによってストアからプロダクトのリストを取得します。 ストアが更新されると（例えば、サービスからプロダクトを取得することによって）、 `stateChanged`メソッドが呼び出され、`products`オブジェクトが生成されます。 最後に、このオブジェクトは製品のリストをレンダリングするために使用されます。
+- `getAllProducts`は、サービスからデータを取得することをシミュレートするアクションクリエータです（ローカルオブジェクトから取得しますが、そのロジックから抜け出す場所です）。 データが準備できたら、非同期の `GET_PRODUCTS`アクションを送出します。
+- 商品がカートに追加されるたびに、 `addToCart`アクションクリエータがディスパッチされることに注意してください。 これにより、Reduxストア内の `products`オブジェクトと` cart`オブジェクトの両方が更新され、 `shop-products`と`shop-cart`の両方で `stateChanged`が呼び出されます。
+- アイテムをカートに追加すると、 `addToCart`アクションクリエータがディスパッチされます。アクションクリエータは、アイテムを実際にカートに追加する前に、（Redux側の）在庫を最初に再確認します。これは、在庫よりも多くのアイテムをカートに追加できるフロントエンドハッキングを避けるために行われます 😅
+
+#### `shop-cart.js`
+
+`shop-products`と同様に、この要素もストアに接続され、`products`と `cart`の両方の状態を監視します。 Reduxのルールの1つは、正しい情報元が1つだけあるべきであり、データを複製するべきではないということです。 この理由から、 `products`は正しい情報元であり（利用可能な全てのアイテムを含んでいます）、`cart`はカートに追加されたインデックスと数を含んでいます。
+
+<a id="routing">
+
+### ルーティング
+
+私たちは非常にシンプルな（しかし、柔軟性のある）リデュースフレンドリーなルータを使用しています。ルータは、ウィンドウの場所を使用してストアに保管します。これは、 `pwa-helpers`パッケージから提供された`installRouter`ヘルパーメソッドを使用して行います:
+
+```js
+import { installRouter } from '@polymer/pwa-helpers/router.js';
+firstUpdated() {
+  installRouter((location) => this._locationChanged(location));
+}
+```
+
+<a id="patterns">
+
+## パターン
+
+<a id="connecting-dom-events-to-action-creators">
+
+### アクションクリエイターにDOMイベントを接続する
+
+すべての要素をストアに接続したくない場合は、接続していない要素は、ストア内の状態を更新を伝達する必要があります。
+
+<a id="manually">
+
+#### 手動
+
+これを手動で行うには、イベントを発生させます。 `<child-element>`が接続されてなく、プロパティ`foo`を表示して変更した場合:
+
+- fooが変更されると、`<child-element>`はイベントを発生させます:
+
+```js
+_onIncrement() {
+  this.value++;
+  this.dispatchEvent(new CustomEvent('counter-incremented');
+}
+```
+
+- `<child-element>`の接続された親はこのイベントをリッスンして、アクションをストアにディスパッチできます:
+
+```html
+<counter-element on-counter-incremented="${() => store.dispatch(increment())}"
+```
+
+JavaScriptでは
+
+```js
+firstUpdated() {
+  this.addEventListener('counter-incremented', function() {
+    store.dispatch(increment());
+  });
+}
+```
+
+<a id="automatically">
+
+#### 自動
+
+あるいは、`foo-changed`プロパティー変更イベントをReduxアクションに自動的に変換するヘルパーを書くことができます。 これは `<child-element>`のプロパティが通知する（つまり `notify：true`を持つ）必要があることに注意してください。 ここに[サンプル](https://gist.github.com/kevinpschaaf/995c9d1fd0f58fe021b174c4238b38c3#file-5-connect-element-mixin-js)があります。
+
+<a id="reducers-slice-reducers">
+
+### Reducers: スライスする
+
+あなたのアプリをもっとモジュラー化するために、主要な状態オブジェクトをパーツ（"slices"）に分割し、より小さい"スライスレデューサ"を各パーツで動作させることができます（[スライスレデューサについて詳しく読む](https://redux.js.org/docs/recipes/reducers/SplittingReducerLogic.html)). `lazyReducerEnhancer`を使うと、アプリケーションは必要に応じて遅延縮小を追加することができます(例えば、`my-view2`が処理するのに`my-view2js`だけをインポートするには、`counter`スライスレデューサを追加します。)
+
+**`src/store.js:`**
+```js
+export const store = createStore(
+  (state, action) => state,
+  compose(lazyReducerEnhancer(combineReducers), applyMiddleware(thunk))
+);
+```
+
+**`src/components/my-view2.js:`**
+```js
+// この要素はReduxストアに接続する
+import { store } from '../store.js';
+
+// reducerを遅延読み込みする
+import counter from '../reducers/counter.js';
+store.addReducers({
+  counter
+});
+```
+
+<a id="avoid-duplicate-state">
+
+### 重複状態を避ける
+
+[Reselect](https://github.com/reactjs/reselect)ライブラリを使用して、状態に重複したデータを保存することは避けてください。 例えば、状態は項目のリストを含むことができ、その1つは選択された項目（例えば、URLに基​​づく）である場合です。選択したアイテムを別々に格納する代わりに、選択したアイテムを計算するセレクタを作成します:
+
+```js
+import { createSelector } from 'reselect';
+
+const locationSelector = state => state.location;
+const itemsSelector = state => state.items;
+
+const selectedItemSelector = createSelector(
+  locationSelector,
+  itemsSelector,
+  (location, items) => items[location.pathname.slice(1)]
+);
+
+// 選択した項目を取得するには:
+console.log(selectedItemSelector(state));
+```
+
+この例を見るには、カートの例を見てください[カート個数セレクタ](https://github.com/Polymer/pwa-starter-kit/blob/master/src/components/my-view3.js#L107) もしくは [Redux-HN](https://github.com/PolymerLabs/polymer-redux-hn)の[アイテムセレクタ](https://github.com/PolymerLabs/polymer-redux-hn/blob/master/src/components/hn-item.ts#L59)。どちらの例でもセレクタはRedux側とビュー層の両方で使用されているため、実際にreducerで定義されています。
+
+<a id="how-to-make-sure-third-party-components-dont-mutate-the-state">
+
+### サードパーティのコンポーネントが状態を変更しないようにする方法
+
+ほとんどのサードパーティコンポーネントは副作用のない方法で使用するようには作られておらず、Reduxストアに接続されていないため、ストアの更新を保証できません。例えば、 例えば`paper-input`は`value`プロパティを持っています。内部的なアクション（つまり、あなたの入力、検証など）に基づいて更新されます。 このような要素がストアを更新しないようにするには:
+- 単方向データバインディングを使用して、プリミティブ（文字列、数値など）を要素に渡します。
+  - `<paper-input value="${foo}"></paper-input>`
+  - それはプリミティブの値なので、paper-inputは`foo`のコピーされた値を受け取ります。`foo`を更新すると、ストア内の実際のプロパティではなく**コピーのみ**が更新されます
+  - 要素の外で `foo-changed`イベントを聞き、そこからストアを更新するアクションをディスパッチします（[サンプル](https://github.com/Polymer/pwa-starter-kit/blob/master/src/components/my-view2.js#L51)).
+- 配列/オブジェクトは変更可能なので、配列またはオブジェクトの**コピー**を要素に渡します:
+  - `<other-input data="${_copy(fooArray)}"></other-input>`
+  - `<other-input data="${_deepCopy(fooObj)}"></other-input>`
+  - 上のようにイベントを変更して、ストアを更新するアクションをディスパッチします。
+
+<a id="routing-1">
+
+### ルーティング
+
+Reduxを使用すると、基本的にはルーティングは自分で制御します。しかし、私たちは[ルーターヘルパー](https://github.com/Polymer/pwa-helpers/blob/master/src/router.tsl)を提供しています。 私たちの提案は `window.location`に基づいて位置状態を更新することです。 つまり、リンクがクリックされるたびに（またはユーザーが後方をナビゲートすると）、アクションが送出されて場所に基づいて状態が更新されます。これは、タイムトラベルのデバッグではうまくいきます。以前の状態にジャンプしても、URLバーや履歴スタックには影響しません。
+
+ルータの設置と使用の例:
+
+```js
+// ...
+import { installRouter } from '@polymer/pwa-helpers/router.js';
+
+class MyApp extends connect(store)(LitElement) {
+    // ...
+    firstUpdated() {
+      installRouter((location) => this._locationChanged(location));
+
+      // installRouterに渡される引数はコールバックです。あなたがアクションを
+      // ディスパッチすること以外に他の仕事をしていない場合は、次のようなものを書くこともできます:
+      // installRouter((location) => store.dispatch(navigate(location.pathname)));
+    }
+
+    _locationChanged(location) {
+      // どのアクションクリエータをあなたが作成し、
+      // どの部分に反映させるか
+      store.dispatch(navigate(location.pathname));
+
+      // 必要に応じてdrawerを閉じるなどします。
+    }
+  }
+}
+```
+
+<a id="lazy-loading">
+
+### 遅延読み込み
+
+PRPLパターンの主な側面の1つは、必要に応じてアプリケーションのコンポーネントを遅延ロードすることです。これらの遅延ロードされた要素の1つがストアに接続されている場合は、その要素のreducerも遅延ロードできる必要があります。
+
+あなたがこれを行うことができる方法はたくさんあります。 そのうちの1つを[ヘルパー](https://github.com/Polymer/pwa-helpers/blob/master/src/lazy-reducer-enhancer.ts)として実装しました。これはストアに追加することができます:
+
+```js
+import lazyReducerEnhancer from '@polymer/pwa-helpers/lazy-reducer-enhancer.js';
+
+// 遅延読み込みされない初期のreducer
+import app from './reducers/app.js';
+
+export const store = createStore(
+  (state, action) => state,
+  compose(lazyReducerEnhancer, applyMiddleware(thunk))
+);
+
+// reducerの初期化
+store.addReducers({
+  app
+});
+```
+
+この例では、アプリケーションは起動し、 `app` reducersをインストールしますが、他のものはインストールしません。遅延ロードされた要素では、reducerをロードするために、 `store.addReducers`を呼び出すだけです。:
+
+```js
+// この要素が遅延読み込みされる場合は、そのreducerも一緒に読み込みする必要があります
+import { someReducer } from './store/reducers/one.js';
+import { someOtherReducer } from './store/reducers/two.js';
+
+// reducerを遅延読み込み
+store.addReducers({someReducer, someOtherReducer});
+
+class MyElement extends ... {
+…
+}
+```
+
+<a id="replicating-the-state-for-storage">
+
+### ストレージの状態を複製する
+
+あなたのアプリがやりたいことの1つは、アプリの状態をストレージに保存することです (データベースもしくは`localStorage`など。Reduxは、基本的には、状態をストレージにダンプする新しいreducerをインストールするだけで済むため、非常に便利です。)
+
+これを行うには、最初に`saveState`と`loadState`という2つの関数を作成して、ストレージに読み書きします:
+
+```js
+export const saveState = (state) => {
+  let stringifiedState = JSON.stringify(state);
+  localStorage.setItem(MY_KEY, stringifiedState);
+}
+export const loadState = () => {
+  let json = localStorage.getItem(MY_KEY) || '{}';
+  let state = JSON.parse(json);
+
+  if (state) {
+    return state;
+  } else {
+    return undefined;  // 初期値としてreducerが利用
+  }
+}
+```
+
+そして、 `store.js`では、基本的に` loadState()`の結果をストアのデフォルト状態として使用し、ストアが更新されるたびに`saveState()`を呼び出します:
+
+```js
+export const store = createStore(
+  (state, action) => state,
+  loadState(),  // ローカルストレージデータがある場合は、ロードします。
+  compose(lazyReducerEnhancer(combineReducers), applyMiddleware(thunk))
+);
+
+// このsubscriberは状態が更新されるたびにローカルストレージに書き込みます。
+store.subscribe(() => {
+  saveState(store.getState());
+});
+```
+
+それでおしまい！プロジェクトのデモを見たい場合は、[**Flash-Cards**](https://github.com/notwaldorf/flash-cards/blob/master/src/localStorage.js)アプリが実装しているパターンを見てください。
