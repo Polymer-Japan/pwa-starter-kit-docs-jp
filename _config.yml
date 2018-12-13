@@ -1,6 +1,6 @@
 permalink: /:title/
 name: PWA Starter Kit
-description: Webコンポーネントによる全部入りWebアプリのスターターキット
+description: Webコンポーネントを使ったプログレッシブWebアプリケーション完全対応の初期テンプレート
 markdown: kramdown
 kramdown: 
   parse_block_html: true
