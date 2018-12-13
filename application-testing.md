@@ -153,8 +153,6 @@ npm run test:integration
 
 ### ベーシックテスト
 
-We use [WCT](https://github.com/Polymer/web-component-tester) to run unit tests. WCT comes pre-packaged with `<test-fixture>`, an element that defines a template of content and copies a clean, new instance of that content into each test suite (more information [here](https://www.polymer-project.org/3.0/docs/tools/tests#test-fixtures)). To add a new unit test to the suite
-
 ユニットテストを実行するには、[WCT](https://github.com/Polymer/web-component-tester)を使用します。 WCTには、コンテンツのテンプレートを定義し、そのコンテンツのクリーンで新しいインスタンスを各テストスイートにコピーする要素である `<test-fixture>`があらかじめパッケージ化されています(詳細は[こちら](https://www.polymer -project.org/3.0/docs/tools/tests#test-fixtures))。スイートに新しい単体テストを追加するには:
 
 - `test/unit/`の下に新しいファイルを作成します（あるいは、すでにある`test/unit/counter-element`をコピーして名前を変更するだけです）。
