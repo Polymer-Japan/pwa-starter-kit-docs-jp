@@ -4,4 +4,4 @@ description: Webコンポーネントを使ったプログレッシブWebアプ�
 markdown: kramdown
 kramdown: 
   parse_block_html: true
-google_analytics: 
+google_analytics: UA-131004707-3
