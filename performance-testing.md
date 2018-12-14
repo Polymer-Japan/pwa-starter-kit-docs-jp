@@ -50,7 +50,7 @@ Interactive timeline of your resources loading, and who generated the requests:
 
 `pwa-starter-kit`は、[PRPLパターン](https://developers.google.com/web/fundamentals/performance/prpl-pattern/)を使用して構築されています。これは、PWAの構築と提供のための新しいアプローチです。パフォーマンスに重点を置いています:
 
-- **Push** 初期URLルートの重要なリソースをプッシュ(先に送信)します。これはHTTP2 pushを使用して実現され、[ビルドとデプロイ]({{site.baseurl}}/building-and-deploying#h2-server-push-optional)セクションでカバーされています。
+- **Push** 初期URLルートの重要なリソースをプッシュ(先行させて送信)します。これはHTTP2 pushを使用して実現され、[ビルドとデプロイ]({{site.baseurl}}/building-and-deploying#h2-server-push-optional)セクションでカバーされています。
 - **Render** 最初にルートを描画(レンダリング)します。リクエストされたページをできるだけ早くレンダリングするために、各ルートは必要なものだけをロードします。他の、まだリクエストされていないアプリケーションの必要なリソースはロードしないようにします。
 - **Pre-cache** 残りのルートを事前にキャッシュします。 要求されたページがロードされると、Service Workerがインストールされ、[polymer.json](https://github.com/Polymer/pwa-starter-kit/blob/master/polymer.json#L4)に指定されたフラグメントがプリキャッシュされます。
 - **Lazy-load** 残ったルートをオンデマンドで遅延読み込み(Lazy-load)します。ユーザーがルートを切り替えると、Service Workerによってキャッシュされていない必要なリソースがすべて遅延読み込みされ、ビューが作成されます。
