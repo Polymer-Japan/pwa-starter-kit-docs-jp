@@ -21,8 +21,8 @@ This step is automated for you by the `npm run build` script, but in case you wa
 
 Feature  | Action needed | On what browsers|
  ------------ | :-----------: | -----------: |
-Custom Elements | [Polyfill](https://github.com/webcomponents/webcomponentsjs) | [IE11, Edge, Firefox, Safari<11](https://caniuse.com/#feat=custom-elementsv1) |
-Shadow DOM | [Polyfill](https://github.com/webcomponents/webcomponentsjs) | [IE11, Edge, Firefox, Safari<11](https://caniuse.com/#feat=shadowdomv1)|
+Custom Elements | [Polyfill](https://github.com/webcomponents/webcomponentsjs) | [IE11, Edge, Firefox<63, Safari<11](https://caniuse.com/#feat=custom-elementsv1) |
+Shadow DOM | [Polyfill](https://github.com/webcomponents/webcomponentsjs) | [IE11, Edge, Firefox<63, Safari<11](https://caniuse.com/#feat=shadowdomv1)|
 Class syntax | Transpile (babel), extra [adapter](https://github.com/webcomponents/webcomponentsjs#custom-elements-es5-adapterjs) for Custom Elements/Shadow DOM | [IE11](https://caniuse.com/#feat=es6-class) |
 Promises | [Polyfill](https://github.com/stefanpenner/es6-promise)| [IE11](https://caniuse.com/#feat=promises) |
 `fetch()`  |   [Polyfill](https://github.com/github/fetch)   |         [IE11, iOS <10.2](https://caniuse.com/#feat=fetch) |
@@ -51,8 +51,8 @@ Dynamic JS modules (`import()`) | Polyfill, a module loader (webpack) | |
 
 機能  | 必要な機構 | 必要なブラウザ |
  ------------ | :-----------: | -----------: |
-Custom Elements | [ポリフィル](https://github.com/webcomponents/webcomponentsjs) | [IE11, Edge, Firefox, Safari<11](https://caniuse.com/#feat=custom-elementsv1) |
-Shadow DOM | [ポリフィル](https://github.com/webcomponents/webcomponentsjs) | [IE11, Edge, Firefox, Safari<11](https://caniuse.com/#feat=shadowdomv1)|
+Custom Elements | [ポリフィル](https://github.com/webcomponents/webcomponentsjs) | [IE11, Edge, Firefox<63, Safari<11](https://caniuse.com/#feat=custom-elementsv1) |
+Shadow DOM | [ポリフィル](https://github.com/webcomponents/webcomponentsjs) | [IE11, Edge, Firefox<63, Safari<11](https://caniuse.com/#feat=shadowdomv1)|
 Class syntax | トランスパイル (babel), Custom Elements/Shadow DOM用の拡張[アダプタ](https://github.com/webcomponents/webcomponentsjs#custom-elements-es5-adapterjs) | [IE11](https://caniuse.com/#feat=es6-class) |
 Promises | [ポリフィル](https://github.com/stefanpenner/es6-promise)| [IE11](https://caniuse.com/#feat=promises) |
 `fetch()`  |   [ポリフィル](https://github.com/github/fetch)   |         [IE11, iOS <10.2](https://caniuse.com/#feat=fetch) |

@@ -23,7 +23,18 @@ If you’re looking for a good starting point of where to plug in a library, `st
 
 Sample issues: [#199](https://github.com/Polymer/pwa-starter-kit/issues/199)
 
-Libraries must provide ES modules (ESM) - other module formats, such as UMD, `module.exports`, AMD, CommonJS, etc., are not compatible with Polymer tools. If the library's `pkg.main` is not already ESM, check if `package.json` defines `pkg.module` or `pkg[‘jsnext:main’]` - our tools will prefer those if present. Alternatively, you can import from `some-lib/src` if the source is written as ESM. If the library sets browser globals, you can reference them through the window object (e.g. `window.someLib`). Otherwise, you have to request ESM from the library author.
+Libraries must provide ES modules (ESM) - other module formats, such as UMD, `module.exports`, AMD, CommonJS, etc., are not compatible with Polymer build tools.
+
+- If the library's `pkg.main` is not already ESM, check if `package.json` defines `pkg.module` or `pkg[‘jsnext:main’]` - our tools will prefer those if present.
+- If the source is written as ESM, you can import the source specifically (e.g. `import 'some-lib/src'`).
+- If the library sets browser globals, you can include it with a normal `<script>` tag in HTML and reference them through the window object (e.g. `window.someLib`).
+- You can also consider contacting the library author to request ESM.
+
+Alternatively, you can use another build tool (e.g. webpack, Rollup). See the below FAQ for webpack.
+
+## Using webpack/other build tools
+
+pwa-starter-kit is written with ES modules which is compatible with a variety of JavaScript build tools. For example, take a look at the [webpack branch](https://github.com/Polymer/pwa-starter-kit/tree/webpack).
 
 ## I’m getting errors when running the tests
 
@@ -52,7 +63,18 @@ pwa-starter-kitは、フレームワークやアプリケーションアーキ�
 
 同じようなIssue: [#199](https://github.com/Polymer/pwa-starter-kit/issues/199)
 
-ライブラリはESモジュール（ESM）で提供されている必要があります。 UMD、module.exports、AMD、CommonJSなどの他のモジュールフォーマットは、Polymerのツールと互換性がありません。 もしライブラリの`pkg.main`がESMでないなら,`package.json`が`pkg.module`か`pkg[‘jsnext:main’]`を定義していないかチェックしてください。もしあるなら私たちのツールは適合するようにするでしょう。あるいは、ソースがESMとして書かれている場合は、 `some-lib/src`からインポートすることができます。 ライブラリがブラウザのグローバルを設定する場合は、ウィンドウオブジェクトから参照できます(例として`window.someLib`)。 それ以外の場合は、ライブラリ作成者にESMへの対応をお願いする必要があります。
+ライブラリはESモジュール（ESM）で提供されている必要があります。 UMD、module.exports、AMD、CommonJSなどの他のモジュールフォーマットは、Polymerのツールと互換性がありません。
+
+- もしライブラリの`pkg.main`がESMでないなら,`package.json`が`pkg.module`か`pkg[‘jsnext:main’]`を定義していないかチェックしてください。もしあるなら私たちのツールは適合するようにするでしょう。
+- ソースがESMとして書かれている場合は、 `some-lib/src`からインポートすることができます。
+- ライブラリがブラウザのグローバルを設定する場合は、ウィンドウオブジェクトから参照できます(例として`window.someLib`)。
+- それ以外の場合は、ライブラリ作成者にESMへの対応をお願いする必要があります。
+
+また、別のビルドツール(webpack、Rollupなど)を使用することもできます。 webpackのFAQをご覧ください。
+
+## webpack /その他のビルドツールを使うには
+
+pwa-starter-kitには、さまざまなJavaScriptビルドツールと互換性のあるESモジュールが書かれています。例えば[webpackブランチ](https://github.com/Polymer/pwa-starter-kit/tree/webpack)をご覧ください。
 
 ## テストを実行するとエラーが発生します
 
