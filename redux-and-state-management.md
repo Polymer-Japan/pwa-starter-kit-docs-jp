@@ -605,7 +605,7 @@ export const store = createStore(
 
 ### ストアへの要素の接続
 
-接続されている要素は、コンストラクタ内で `store.subscribe`を呼び出す必要があり、`update`メソッドでプロパティを更新するだけです（もし必要な場合）。`pwa-helpers`にはmixin([`connect-mixin.js`](https://github.com/Polymer/pwa-helpers/blob/master/connect-mixin.js))が用意されており、そこですべての接続がされ、`stateChanged`メソッドを実装することにより利用できます。サンプルとしては:
+接続される要素は、コンストラクタで `store.subscribe`を呼び出す必要があり、リスナーからの変更通知によって直ちにその通知された更新部分に限ってプロパティを更新します（その要があれば）。`pwa-helpers`にはmixin([`connect-mixin.js`](https://github.com/Polymer/pwa-helpers/blob/master/connect-mixin.js))が用意されており、そこですべての接続がされ、`stateChanged`メソッドを実装することにより利用できます。サンプルとしては:
 
 ```js
 import { LitElement, html } from '@polymer/lit-element/lit-element.js'
