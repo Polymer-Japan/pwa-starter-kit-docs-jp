@@ -284,7 +284,7 @@ By default, all of the source files (inside the `/src` directory) will be pre-ca
 ビルドを実行するには:
 
 ```
-npm run build:prpl-server
+npm run build
 ```
 
 これで `server/build/`ディレクトリが生成されます:
@@ -308,7 +308,7 @@ server/
 prpl-serverをローカルで使用してビルドをプレビューするには:
 
 ```
-npm run serve:prpl-server
+npm run serve
 ```
 
 <a id="deploying-prpl-server">
@@ -388,9 +388,6 @@ npm run serve:static
 <a id="deploying-static-hosting">
 
 ### 静的ホスティングのデプロイ
-
-By default, static hosting servers aren't set up to work with single page apps (SPAs) -- in particular, the problem is that an SPA uses routes that do not correspond to full file path names. For example, in `pwa-starter-kit` the second view's URL is `http://localhost:8081/view2`, but that doesn't correspond to a file that the browser can use. Each static hosting server has a different approach to working around this
-
 
 デフォルトでは、スタティックホスティングサーバーはシングルページアプリケーション(SPA)で動作するように設定されていません。特に、SPAが完全なファイルパス名に対応しないルートを使用するという問題があります。たとえば、 `pwa-starter-kit`の2番目のビューのURLは`http://localhost:8081/view2`ですが、ブラウザが使用できるファイルには対応していません。各静的ホスティングサーバーには、これを回避するための異なるアプローチを持っています:
 
@@ -524,7 +521,7 @@ firebase deploy
 
 Service Workerが[`index.html`](https://github.com/Polymer/pwa-starter-kit/blob/master/index.html#L68)でロードされ、登録されます。しかし、開発中（デバッグを簡単にするため）は Service Workerは実際には存在せず、[空ファイル](https://github.com/Polymer/pwa-starter-kit/blob/master/service-worker.js)のみが存在します。
 
-Service Workerの設定はビルド時、つまり `npm run build:static`または`npm run build:prpl-server`を実行することによって自動的に作成されます。ビルドディレクトリのこれらのファイルは、[`polymer.json`](https://github.com/Polymer/pwa-starter-kit/blob/master/polymer.json)の設定ファイルに基づいて生成されます:
+Service Workerの設定はビルド時、つまり `npm run build`または`npm run build:static`を実行することによって自動的に作成されます。ビルドディレクトリのこれらのファイルは、[`polymer.json`](https://github.com/Polymer/pwa-starter-kit/blob/master/polymer.json)の設定ファイルに基づいて生成されます:
 
 ```
 build/
