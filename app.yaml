@@ -10,6 +10,8 @@ libraries:
   version: "2.5.2"
 
 default_expiration: "1m"
+manual_scaling:
+  instances: 1
 
 handlers:
 - url: /css
