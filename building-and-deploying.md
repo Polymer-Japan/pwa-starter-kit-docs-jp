@@ -325,21 +325,22 @@ npm run serve
 
 #### App Engine
 
+##### スタンダード環境
+
+`server/app.yaml`のコンテンツは[Google App Engine Node.js スタンダード環境](https://cloud.google.com/appengine/docs/standard/nodejs/)にデプロイできるように事前設定されています。 `gcloud`ツールを使用して` server/`の内容をデプロイします（例: `gcloud app deploy server/app.yaml`）。
+
 ##### フレキシブル環境
 
-The contents of `server/app.yaml` is pre-configured to be deployed to [Google App Engine Node.js Flexible Environment](https://cloud.google.com/appengine/docs/flexible/nodejs/). Use the `gcloud` tool to deploy the contents of `server/` (e.g. `gcloud app deploy server/app.yaml`).
-
-`server/app.yaml`のコンテンツは[Google App Engine Node.jsフレキシブル環境](https://cloud.google.com/appengine/docs/flexible/nodejs/)にデプロイできるように事前設定されています。 `gcloud`ツールを使用して` server/`の内容をデプロイします（例: `gcloud app deploy server/app.yaml`）。
-
-##### スタンダード環境 (ベータ)
-
-[Google App Engine Node.js スタンダード環境（Beta）](https://cloud.google.com/appengine/docs/standard/nodejs/)にデプロイするには、 `server/app.yaml`の下記で置き換えます:
+[Google App Engine Node.js フレキシブル環境](https://cloud.google.com/appengine/docs/flexible/nodejs/)にデプロイするには、 `server/app.yaml`を下記で置き換えます:
 
 ```yaml
-runtime: nodejs8
+runtime: nodejs
+env: flex
+automatic_scaling:
+  min_num_instances: 1
 ```
 
-`gcloud`ツールを使用して`server/`の内容をデプロイします (例: `gcloud app deploy server/app.yaml`).
+`gcloud`ツールを使用して`server/`の内容をデプロイします (例: `gcloud app deploy server/app.yaml`)。
 
 <a id="firebase-hosting--firebase-functions">
 
